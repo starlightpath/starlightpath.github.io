@@ -1,2 +1,1 @@
-# starlightpath.github.io
-Offical Website
+# Star Light Path  | 星光小徑－森林的約定
