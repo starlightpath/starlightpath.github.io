@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starlight Path: A Promise in the Forest</title>
+<meta name="description" content="Starlight Path: A Promise in the Forest — a cozy 2D pixel RPG made with Godot 4.">
+<style>
+  :root {
+    --bg: #111a2e; --bg2: #1d2b53; --panel: rgba(255,255,255,0.05);
+    --gold: #ffe27a; --cream: #f4e9d8; --muted: #a9b4d0; --accent: #7fc8a9;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; color: var(--cream);
+    font-family: "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%) fixed;
+    line-height: 1.7;
+  }
+  a { color: var(--gold); text-decoration: none; }
+  header {
+    position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px);
+    background: rgba(17,26,46,0.85); border-bottom: 1px solid rgba(255,226,122,0.15);
+  }
+  .nav {
+    max-width: 1100px; margin: 0 auto; padding: 12px 20px;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  }
+  .logo { font-weight: 700; color: var(--gold); margin-right: auto; letter-spacing: .5px; }
+  .nav a { color: var(--cream); font-size: 14px; opacity: .85; }
+  .nav a:hover { opacity: 1; color: var(--gold); }
+  .lang { display: flex; gap: 6px; }
+  .lang button {
+    background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 999px; padding: 4px 12px; cursor: pointer; font-size: 13px;
+  }
+  .lang button.active { color: var(--bg); background: var(--gold); border-color: var(--gold); }
+  .hero {
+    text-align: center; padding: 90px 20px 70px; position: relative; overflow: hidden;
+  }
+  .hero h1 { font-size: clamp(32px, 6vw, 56px); margin: 0 0 10px; color: var(--gold); letter-spacing: 1px; }
+  .hero .sub { font-size: 18px; color: var(--cream); opacity: .9; margin-bottom: 26px; }
+  .hero .tag { color: var(--muted); max-width: 640px; margin: 0 auto 34px; }
+  .btn {
+    display: inline-block; padding: 12px 26px; border-radius: 10px; font-weight: 600;
+    background: var(--gold); color: var(--bg); margin: 6px;
+  }
+  .btn.ghost { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+  .btn:hover { filter: brightness(1.08); }
+  .stars { position: absolute; inset: 0; pointer-events: none; }
+  .stars span {
+    position: absolute; width: 2px; height: 2px; background: var(--gold); border-radius: 50%;
+    animation: twinkle 3s infinite ease-in-out;
+  }
+  @keyframes twinkle { 0%,100% { opacity: .2 } 50% { opacity: 1 } }
+  section { max-width: 1100px; margin: 0 auto; padding: 60px 20px; }
+  section h2 { color: var(--gold); font-size: 28px; margin: 0 0 18px; }
+  [hidden] { display: none !important; }
+  .release-note { margin-top: 20px; font-size: 14px; color: var(--muted) !important; }
+  section p { color: var(--cream); opacity: .9; max-width: 780px; }
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 22px; }
+  .card {
+    background: var(--panel); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 20px;
+  }
+  .card h3 { margin: 0 0 8px; color: var(--gold); font-size: 18px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; opacity: 1; }
+  .avatar {
+    width: 56px; height: 56px; border-radius: 50%; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 26px;
+  }
+  .shots { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 22px; }
+  .shot {
+    aspect-ratio: 16/9; border-radius: 12px; border: 1px dashed rgba(255,226,122,.35);
+    display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 14px;
+    background: linear-gradient(135deg, #2b4a6f, #14213d);
+  }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; max-width: 640px; }
+  td, th { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+  th { color: var(--gold); font-weight: 600; }
+  kbd {
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); border-radius: 6px;
+    padding: 2px 8px; font-family: inherit; font-size: 13px;
+  }
+  .news li { margin-bottom: 10px; color: var(--cream); }
+  .news .date { color: var(--muted); font-size: 13px; margin-right: 8px; }
+  footer {
+    text-align: center; padding: 34px 20px; color: var(--muted); font-size: 14px;
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px;
+    background: rgba(127,200,169,.15); color: var(--accent); border: 1px solid rgba(127,200,169,.4); margin-left: 6px;
+  }
+  .shop-card { text-align: center; transition: transform .2s, border-color .2s; }
+  .shop-card:hover { transform: translateY(-3px); border-color: rgba(255,226,122,.35); }
+  .shop-icon { font-size: 40px; margin-bottom: 8px; }
+  .shop-note { color: var(--muted); font-size: 14px; margin-top: 20px; }
+  @media (max-width: 640px) { .logo { width: 100%; } .hero { padding-top: 60px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <div class="logo">Starlight Path</div>
+    <a href="#about" data-i18n="nav_about">About</a>
+    <a href="#features" data-i18n="nav_features">Features</a>
+    <a href="#characters" data-i18n="nav_characters">Characters</a>
+    <a href="#world" data-i18n="nav_world">World</a>
+    <a href="#beta131" data-i18n="nav_beta108">Beta 1.3.1</a>
+    <a href="#story131">RPG 1.3.0</a>
+    <a href="#shop" data-i18n="nav_shop">Shop</a>
+    <a href="#controls" data-i18n="nav_controls">Controls</a>
+    <a href="#save-guide" data-i18n="nav_save">Save & Settings</a>
+    <a href="#download" data-i18n="nav_download">Download</a>
+    <div class="lang">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="zh">繁中</button>
+      <button data-lang="ja">日本語</button>
+    </div>
+  </nav>
+</header>
+
+<div class="hero">
+  <div class="stars" id="stars"></div>
+  <h1 data-i18n="title">Starlight Path</h1>
+  <div class="sub" data-i18n="subtitle">A Promise in the Forest</div>
+  <p class="tag" data-i18n="tagline">Follow a lantern through a forest that has lost its stars. Meet gentle creatures and kind villagers, solve small mysteries, and help bring the starlight home.</p>
+  <a class="btn" href="https://github.com/starlightpath/starlightpath-game-download/releases" target="_blank" rel="noopener" data-i18n="hero_download">Download Beta</a>
+  <a class="btn ghost" href="#about" data-i18n="hero_learn">Learn More</a>
+</div>
+
+<section id="about">
+  <h2 data-i18n="about_title">About the Game</h2>
+  <p data-i18n="about_body">Starlight Path is a cozy 2D pixel-art adventure RPG. You play a lost traveler who arrives in a forest guarded by starlight. As night falls, you explore the woods, collect items, complete small quests, and slowly uncover the secret behind the dimming stars.</p>
+</section>
+
+<section id="features">
+  <h2 data-i18n="feat_title">Features</h2>
+  <div class="grid">
+    <div class="card"><h3 data-i18n="f1_t">Night Exploration</h3><p data-i18n="f1_b">A moonlit forest with lantern light, glowing fireflies, and soft ambient color.</p></div>
+    <div class="card"><h3 data-i18n="f2_t">Heartfelt Quests</h3><p data-i18n="f2_b">Help a worried bunny, a busy blacksmith, and a little girl who lost her light.</p></div>
+    <div class="card"><h3 data-i18n="f3_t">Dialogue That Changes</h3><p data-i18n="f3_b">Characters remember what you have done, and their words change as the story moves on.</p></div>
+    <div class="card"><h3 data-i18n="f4_t">Guided Start</h3><p data-i18n="f4_b">A gentle objective guide shows you what to do next, so you are never lost for long.</p></div>
+    <div class="card"><h3 data-i18n="f5_t">Save Anywhere</h3><p data-i18n="f5_b">Save with F5 and continue later from the exact place you stopped.</p></div>
+    <div class="card"><h3 data-i18n="f6_t">Three Languages</h3><p data-i18n="f6_b">Play in English, Traditional Chinese, or Japanese. Switch at any time from the title screen.</p></div>
+  </div>
+</section>
+
+<section id="characters">
+  <h2 data-i18n="chars_title">Characters</h2>
+  <div class="grid">
+    <div class="card"><div class="avatar" style="background:#f4d6c3">🐰</div><h3 data-i18n="c_bunny_n">Bunny</h3><p data-i18n="c_bunny_d">Lost a carrot by the burrow and is too frightened to look for it alone.</p></div>
+    <div class="card"><div class="avatar" style="background:#f4a96b">🦊</div><h3 data-i18n="c_fox_n">Fox</h3><p data-i18n="c_fox_d">Cannot find the way home. Keep an eye out for a cabin with a red roof.</p></div>
+    <div class="card"><div class="avatar" style="background:#c9c9f4">✨</div><h3 data-i18n="c_elder_n">Elder Starlight</h3><p data-i18n="c_elder_d">The guardian of the forest, who speaks of the shrine waiting beyond the lake.</p></div>
+    <div class="card"><div class="avatar" style="background:#f7e1a0">🧒</div><h3 data-i18n="c_mimi_n">Mimi</h3><p data-i18n="c_mimi_d">A little girl whose lantern went out. Her laughter brings the square back to life.</p></div>
+    <div class="card"><div class="avatar" style="background:#8a95a8">🔨</div><h3 data-i18n="c_smith_n">Blacksmith Shitou</h3><p data-i18n="c_smith_d">Needs a piece of wood to mend a lantern, and promises a light in return.</p></div>
+    <div class="card"><div class="avatar" style="background:#bfe6ff">🧚</div><h3 data-i18n="c_fairy_n">Fairy Lulu</h3><p data-i18n="c_fairy_d">Guards the secrets of the lake and offers a helpful hint to every traveler.</p></div>
+  </div>
+</section>
+
+<section id="world">
+  <h2 data-i18n="world_title">World</h2>
+  <div class="grid">
+    <div class="card"><h3 data-i18n="w_forest_n">Starlight Forest</h3><p data-i18n="w_forest_d">Where your journey begins. Quiet paths, a glowing lake, and friendly woodland creatures.</p></div>
+    <div class="card"><h3 data-i18n="w_village_n">Starlight Village</h3><p data-i18n="w_village_d">A small village with a square, a fountain, and neighbors who need your help.</p></div>
+    <div class="card"><h3 data-i18n="w_more_n">More to Come</h3><p data-i18n="w_more_d">New story chapters and deeper exploration are planned; combat is not part of the game.</p></div>
+  </div>
+  <div class="shots">
+    <div class="shot" data-i18n="shot1">Screenshot: Forest at night</div>
+    <div class="shot" data-i18n="shot2">Screenshot: Starlight Village</div>
+  </div>
+</section>
+
+<section id="beta131">
+  <h2 data-i18n="beta108_title">Beta 1.3.1 — What's New</h2>
+  <div class="grid">
+    <div class="card"><h3 data-i18n="beta108_slots_title">Five Save Slots</h3><p data-i18n="beta108_slots_body">Choose from five independent saves. Your progress lives beside the Windows EXE in game_save_data/slot_1.json through slot_5.json.</p></div>
+    <div class="card"><h3 data-i18n="beta108_ach_title">Achievements</h3><p data-i18n="beta108_ach_body">Discover eight achievements as you help friends, explore and listen to the forest's stories.</p></div>
+    <div class="card"><h3 data-i18n="beta108_story_title">More Story</h3><p data-i18n="beta108_story_body">A mysterious letter, the elder's wisdom, and the mayor's legend of five wishes add new moments to the adventure.</p></div>
+    <div class="card"><h3 data-i18n="beta108_ui_title">Refined Menus &amp; English Default</h3><p data-i18n="beta108_ui_body">A clearer save-slot menu and achievement gallery. New installations start in English; existing language preferences remain saved.</p></div>
+  </div>
+  <p data-i18n="beta108_note">Save slots are part of the downloadable Godot game, not playable in the browser. Beta features should be tested before release.</p>
+</section>
+
+<section id="story131" class="rpg-update">
+<div data-release-lang="en">
+<h2>Beta 1.3.1 · A Road Beyond the Shrine</h2><p>The road of starlight opens beyond Chapter 50. Follow the lost records, five wishes, and the Story Keepers through ten new story arcs. Chapter 150 is a turning point, not the ending.</p><div class="grid">
+<div class="card"><h3>World Map & Fast Travel</h3><p>Press M to open the world map and travel between listed destinations. The current story destination is highlighted.</p></div>
+<div class="card"><h3>Find the Right Person</h3><p>Quest dialogue targets glow in the world. Journal objectives include clearer location hints and Story Keeper coordinates.</p></div>
+<div class="card"><h3>New Southern Towns</h3><p>Travel south from Starlight Village to Sunmeadow and Cloverbrook. Meet their residents and visit food merchants.</p></div>
+<div class="card"><h3>Chapters 51–150: Story Integration</h3><p>100 chapter titles and story passages are included in the game’s chapter data. Existing regions and objective patterns are reused.</p></div>
+</div><h3 style="margin-top:24px;color:var(--gold)">Ten Story Arcs</h3><div class="grid">
+<div class="card"><strong>51–60</strong><div>Beyond the Shrine Road</div></div>
+<div class="card"><strong>61–70</strong><div>The Forgotten Name</div></div>
+<div class="card"><strong>71–80</strong><div>Mirror of Memories</div></div>
+<div class="card"><strong>81–90</strong><div>The Lantern Makers</div></div>
+<div class="card"><strong>91–100</strong><div>The Prism’s Truth</div></div>
+<div class="card"><strong>101–110</strong><div>Unsent Letters</div></div>
+<div class="card"><strong>111–120</strong><div>Promises in the Mist</div></div>
+<div class="card"><strong>121–130</strong><div>Those Who Returned</div></div>
+<div class="card"><strong>131–140</strong><div>The Unwritten Book of Wishes</div></div>
+<div class="card"><strong>141–150</strong><div>The Light We Carry</div></div>
+</div><p class="release-note">Development status: these 100 chapters do not yet have unique per-chapter interactive scenes, complete multi-character conversations or cinematic events. Chapters 151–300 are in development. Godot 4.7.2 runtime testing remains pending. No monster-combat objectives.</p></div>
+<div data-release-lang="zh" hidden>
+<h2>Beta 1.3.1 · 神殿之外的星光道路</h2><p>第 50 章後，星光道路向遠方延伸。沿著失落的紀錄、五個願望與故事守護者的線索，展開十個新篇章。第 150 章是轉折，不是結局。</p><div class="grid">
+<div class="card"><h3>世界地圖與快速傳送</h3><p>按 M 開啟世界地圖，可在列出的地點之間立即傳送，並查看當前劇情目的地。</p></div>
+<div class="card"><h3>任務人物更容易找到</h3><p>需要對話的任務 NPC 會發光；章節日誌提供更明確的位置提示與故事守護者座標。</p></div>
+<div class="card"><h3>南方新增城鎮</h3><p>從星光村往南可到日光草原鎮與四葉溪鎮，認識新居民並使用食物商店。</p></div>
+<div class="card"><h3>第 51～150 章劇情整合</h3><p>已加入 100 章標題與故事段落，延用既有故事區域及任務流程。</p></div>
+</div><h3 style="margin-top:24px;color:var(--gold)">十大劇情篇章</h3><div class="grid">
+<div class="card"><strong>51–60</strong><div>神殿之外的道路</div></div>
+<div class="card"><strong>61–70</strong><div>被遺忘的名字</div></div>
+<div class="card"><strong>71–80</strong><div>記憶之鏡</div></div>
+<div class="card"><strong>81–90</strong><div>造燈的人們</div></div>
+<div class="card"><strong>91–100</strong><div>稜鏡的真相</div></div>
+<div class="card"><strong>101–110</strong><div>未寄出的信</div></div>
+<div class="card"><strong>111–120</strong><div>迷霧中的承諾</div></div>
+<div class="card"><strong>121–130</strong><div>折返的人們</div></div>
+<div class="card"><strong>131–140</strong><div>未寫下的願望之書</div></div>
+<div class="card"><strong>141–150</strong><div>我們攜帶的光</div></div>
+</div><p class="release-note">開發狀態：這 100 章尚未逐章製作專屬互動場景、完整多角色對話與過場演出；第 151～300 章仍在開發。尚未完成 Godot 4.7.2 實際遊玩測試。沒有怪物戰鬥目標。</p></div>
+<div data-release-lang="ja" hidden>
+<h2>Beta 1.3.1 · 神殿の先へ続く星の道</h2><p>第50章の先で星の道が開きます。失われた記録、五つの願い、物語の守り手を追う10の新しい物語。第150章は終わりではなく転機です。</p><div class="grid">
+<div class="card"><h3>ワールドマップとファストトラベル</h3><p>Mキーでマップを開き、表示された場所へ移動できます。現在の目的地も確認できます。</p></div>
+<div class="card"><h3>目的の人物が見つけやすく</h3><p>会話が必要なNPCは光で示され、ジャーナルに場所のヒントや守り手の座標が表示されます。</p></div>
+<div class="card"><h3>南の新しい町</h3><p>星光の村から南へ進むとサンメドウとクローバーブルックへ。新しい住人と食料商人が待っています。</p></div>
+<div class="card"><h3>第51～150章の物語データ</h3><p>100章分のタイトルと物語テキストを追加。既存の地域と目標の仕組みを使用します。</p></div>
+</div><h3 style="margin-top:24px;color:var(--gold)">10の物語編</h3><div class="grid">
+<div class="card"><strong>51–60</strong><div>神殿の先の道</div></div>
+<div class="card"><strong>61–70</strong><div>忘れられた名前</div></div>
+<div class="card"><strong>71–80</strong><div>記憶の鏡</div></div>
+<div class="card"><strong>81–90</strong><div>灯りを作る人々</div></div>
+<div class="card"><strong>91–100</strong><div>プリズムの真実</div></div>
+<div class="card"><strong>101–110</strong><div>届かなかった手紙</div></div>
+<div class="card"><strong>111–120</strong><div>霧の中の約束</div></div>
+<div class="card"><strong>121–130</strong><div>帰ってきた人々</div></div>
+<div class="card"><strong>131–140</strong><div>書かれなかった願いの書</div></div>
+<div class="card"><strong>141–150</strong><div>私たちが運ぶ光</div></div>
+</div><p class="release-note">開発状況：各章固有のイベント、複数人物による完全な会話、演出は未完成です。第151～300章は開発中。Godot 4.7.2での動作検証も未完了です。モンスター戦闘目標はありません。</p></div>
+</section>
+
+<section id="shop" aria-labelledby="shop-heading">
+  <h2 id="shop-heading" data-i18n="shop_title">In-Game Food Shop</h2>
+  <p data-i18n="shop_intro">Visit food merchants during your adventure. Spend in-game coins to buy food and restore hunger. This is a preview of the in-game shop, not an online checkout.</p>
+  <div class="grid shop-grid">
+    <article class="card shop-card"><div class="shop-icon" aria-hidden="true">🫐</div><h3 data-i18n="shop_berry">Wild Berries</h3><p data-i18n="shop_berry_desc">A light snack for the road.</p></article>
+    <article class="card shop-card"><div class="shop-icon" aria-hidden="true">🍞</div><h3 data-i18n="shop_bread">Bread</h3><p data-i18n="shop_bread_desc">A filling everyday meal.</p></article>
+    <article class="card shop-card"><div class="shop-icon" aria-hidden="true">🥣</div><h3 data-i18n="shop_soup">Soup</h3><p data-i18n="shop_soup_desc">Warm food for a long journey.</p></article>
+    <article class="card shop-card"><div class="shop-icon" aria-hidden="true">🍲</div><h3 data-i18n="shop_stew">Stew</h3><p data-i18n="shop_stew_desc">A hearty meal for explorers.</p></article>
+  </div>
+  <p class="shop-note" data-i18n="shop_note">Food prices and availability are determined inside the game. No real-money purchases are available on this website.</p>
+  <a class="btn ghost" href="https://github.com/starlightpath/starlightpath-game-download/releases" target="_blank" rel="noopener" data-i18n="shop_play">Get the Game</a>
+</section>
+
+<section id="controls">
+  <h2 data-i18n="ctrl_title">Controls</h2>
+  <table>
+    <tr><th data-i18n="ctrl_action">Action</th><th data-i18n="ctrl_key">Key</th></tr>
+    <tr><td data-i18n="ctrl_move">Move</td><td><kbd>W A S D</kbd> / <kbd>Arrow keys</kbd></td></tr>
+    <tr><td data-i18n="ctrl_interact">Talk / Pick up</td><td><kbd>E</kbd></td></tr>
+    <tr><td data-i18n="ctrl_advance">Continue dialogue</td><td><kbd>E</kbd> / <kbd>Space</kbd></td></tr>
+    <tr><td data-i18n="ctrl_inv">Inventory</td><td><kbd>I</kbd></td></tr>
+    <tr><td data-i18n="ctrl_pause">Pause menu</td><td><kbd>Esc</kbd></td></tr>
+    <tr><td data-i18n="ctrl_save">Save / Load</td><td><kbd>F5</kbd> / <kbd>F9</kbd></td></tr>
+  </table>
+</section>
+
+<section id="save-guide">
+  <h2 data-i18n="save_title">Continue Game & Settings</h2>
+  <div class="grid">
+    <div class="card">
+      <h3 data-i18n="continue_title">✦ Continue Game</h3>
+      <p data-i18n="continue_body">Choose Continue Game on the title screen to resume an existing adventure. You must have saved a game first.</p>
+      <p data-i18n="save_location" style="margin-top:12px">Save folder (planned for the Windows build):</p>
+      <p><code>game_save_data/</code></p>
+      <p data-i18n="save_note" style="margin-top:8px">Keep this folder beside the game executable when moving or backing up the game. The exact location depends on the installed game build.</p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="settings_title">⚙ Settings — Coming Soon</h3>
+      <p data-i18n="settings_body">The game includes settings, five save slots, and a progress journal; some advanced options remain in development.</p>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <h2 data-i18n="dl_title">Download</h2>
+  <p data-i18n="dl_body">Starlight Path is currently in beta. Download the build for your platform and tell us what you think.</p>
+  <p><strong data-i18n="dl_version">Current version</strong>: 1.3.1 <span class="badge">Beta</span></p>
+  <a class="btn" href="https://github.com/starlightpath/starlightpath-game-download/releases" target="_blank" rel="noopener" data-i18n="dl_btn">Download on GitHub</a>
+</section>
+
+<section id="news">
+  <h2 data-i18n="news_title">News</h2>
+  <ul class="news">
+    <li><span class="date">2026-11-06</span><span data-i18n="news1">Beta 1.3.1: story data through Chapter 150, fast-travel map, southern towns, quest guidance, and a 300-chapter roadmap.</span></li>
+    <li><span class="date">2026-11-06</span><span data-i18n="news2">Starlight Village is now open to explore.</span></li>
+    <li><span class="date">2026-11-06</span><span data-i18n="news3">English, Traditional Chinese and Japanese language support added.</span></li>
+  </ul>
+</section>
+
+<footer>
+  <div>© 2026 Starlight Path Team · <span data-i18n="footer_made">Made with Godot 4</span></div>
+</footer>
+
+<script>
+const T = {
+  en: {
+    "nav_shop": "Shop",
+    "nav_story131": "Story 51–150",
+    "shop_title": "In-Game Food Shop",
+    "shop_intro": "Visit food merchants during your adventure. Spend in-game coins to buy food and restore hunger. This is a preview of the in-game shop, not an online checkout.",
+    "shop_berry": "Wild Berries",
+    "shop_berry_desc": "A light snack for the road.",
+    "shop_bread": "Bread",
+    "shop_bread_desc": "A filling everyday meal.",
+    "shop_soup": "Soup",
+    "shop_soup_desc": "Warm food for a long journey.",
+    "shop_stew": "Stew",
+    "shop_stew_desc": "A hearty meal for explorers.",
+    "shop_note": "Food prices and availability are determined inside the game. No real-money purchases are available on this website.",
+    "shop_play": "Get the Game",
+
+    "nav_beta108": "What’s New",
+    "beta108_title": "Beta 1.3.1 — What’s New",
+    "beta108_slots_title": "Five Save Slots",
+    "beta108_slots_body": "Choose from five independent saves. Windows save files are stored beside the EXE in game_save_data/slot_1.json through slot_5.json.",
+    "beta108_ach_title": "Eight Achievements",
+    "beta108_ach_body": "Discover achievements as you help friends, explore and listen to the forest’s stories.",
+    "beta108_story_title": "More Story",
+    "beta108_story_body": "A mysterious letter, the elder’s wisdom and the mayor’s legend of five wishes add new moments to the adventure.",
+    "beta108_ui_title": "Refined Menus & English Default",
+    "beta108_ui_body": "New save-slot selection and an achievement gallery. Fresh installations start in English; existing preferences remain saved.",
+    "beta108_note": "Save slots work in the downloadable Godot game, not directly on this website. Test the beta build before release.",
+
+    nav_save: "Save & Settings",
+    save_title: "Continue Game & Settings",
+    continue_title: "✦ Continue Game",
+    continue_body: "Choose Continue Game on the title screen to resume a saved adventure. Save your game first.",
+    save_location: "Planned save folder beside the Windows game executable:",
+    save_note: "Keep this folder together with the .exe when moving or backing up the game. This location must be implemented in the Godot build.",
+    settings_title: "⚙ Settings — Coming Soon",
+    settings_body: "The Settings screen is planned for a future update; sound and display options are not yet available.",
+
+    title: "Starlight Path", subtitle: "A Promise in the Forest",
+    tagline: "Follow a lantern through a forest that has lost its stars. Meet gentle creatures and kind villagers, solve small mysteries, and help bring the starlight home.",
+    hero_download: "Download Beta", hero_learn: "Learn More",
+    nav_about: "About", nav_features: "Features", nav_characters: "Characters", nav_world: "World", nav_controls: "Controls", nav_download: "Download",
+    about_title: "About the Game",
+    about_body: "Starlight Path is a cozy 2D pixel-art adventure RPG. You play a lost traveler who arrives in a forest guarded by starlight. As night falls, you explore the woods, collect items, complete small quests, and slowly uncover the secret behind the dimming stars.",
+    feat_title: "Features",
+    f1_t: "Night Exploration", f1_b: "A moonlit forest with lantern light, glowing fireflies, and soft ambient color.",
+    f2_t: "Heartfelt Quests", f2_b: "Help a worried bunny, a busy blacksmith, and a little girl who lost her light.",
+    f3_t: "Dialogue That Changes", f3_b: "Characters remember what you have done, and their words change as the story moves on.",
+    f4_t: "Guided Start", f4_b: "A gentle objective guide shows you what to do next, so you are never lost for long.",
+    f5_t: "Save Anywhere", f5_b: "Save with F5 and continue later from the exact place you stopped.",
+    f6_t: "Three Languages", f6_b: "Play in English, Traditional Chinese, or Japanese. Switch at any time from the title screen.",
+    chars_title: "Characters",
+    c_bunny_n: "Bunny", c_bunny_d: "Lost a carrot by the burrow and is too frightened to look for it alone.",
+    c_fox_n: "Fox", c_fox_d: "Cannot find the way home. Keep an eye out for a cabin with a red roof.",
+    c_elder_n: "Elder Starlight", c_elder_d: "The guardian of the forest, who speaks of the shrine waiting beyond the lake.",
+    c_mimi_n: "Mimi", c_mimi_d: "A little girl whose lantern went out. Her laughter brings the square back to life.",
+    c_smith_n: "Blacksmith Shitou", c_smith_d: "Needs a piece of wood to mend a lantern, and promises a light in return.",
+    c_fairy_n: "Fairy Lulu", c_fairy_d: "Guards the secrets of the lake and offers a helpful hint to every traveler.",
+    world_title: "World",
+    w_forest_n: "Starlight Forest", w_forest_d: "Where your journey begins. Quiet paths, a glowing lake, and friendly woodland creatures.",
+    w_village_n: "Starlight Village", w_village_d: "A small village with a square, a fountain, and neighbors who need your help.",
+    w_more_n: "More to Come", w_more_d: "New story chapters and deeper exploration are planned; combat is not part of the game.",
+    shot1: "Screenshot: Forest at night", shot2: "Screenshot: Starlight Village",
+    ctrl_title: "Controls", ctrl_action: "Action", ctrl_key: "Key",
+    ctrl_move: "Move", ctrl_interact: "Talk / Pick up", ctrl_advance: "Continue dialogue", ctrl_inv: "Inventory",
+    ctrl_pause: "Pause menu", ctrl_save: "Save / Load",
+    dl_title: "Download", dl_body: "Starlight Path is currently in beta. Download the build for your platform and tell us what you think.",
+    dl_version: "Current version", dl_btn: "Download on GitHub",
+    news_title: "News",
+    news1: "Beta 1.3.1: story data through Chapter 150, fast-travel map, southern towns, quest guidance, and a 300-chapter roadmap.",
+    news2: "Starlight Village is now open to explore.",
+    news3: "English, Traditional Chinese and Japanese language support added.",
+    footer_made: "Made with Godot 4"
+  },
+  zh: {
+    "nav_shop": "商店",
+    "nav_story131": "第 51～150 章",
+    "shop_title": "遊戲內食物商店",
+    "shop_intro": "冒險途中可以拜訪食物商人，使用遊戲內金幣購買食物，恢復飢餓值。此處為遊戲商店介紹，並非網路購物結帳頁面。",
+    "shop_berry": "野莓",
+    "shop_berry_desc": "適合旅途中補充體力的小點心。",
+    "shop_bread": "麵包",
+    "shop_bread_desc": "簡單又有飽足感的日常食物。",
+    "shop_soup": "熱湯",
+    "shop_soup_desc": "長途冒險時的暖心料理。",
+    "shop_stew": "燉菜",
+    "shop_stew_desc": "適合探險家的豐盛餐點。",
+    "shop_note": "實際價格及供應情況以遊戲內商店為準；本網站不提供真實金錢購物。",
+    "shop_play": "下載遊戲",
+
+    "nav_beta108": "更新內容",
+    "beta108_title": "Beta 1.3.1 更新內容",
+    "beta108_slots_title": "五個獨立存檔格",
+    "beta108_slots_body": "新遊戲、繼續遊戲可選擇五格存檔。Windows 存檔位於 EXE 同層的 game_save_data/slot_1.json 至 slot_5.json。",
+    "beta108_ach_title": "八項成就",
+    "beta108_ach_body": "幫助森林朋友、探索村莊與傾聽故事，逐步解鎖八項成就。",
+    "beta108_story_title": "新增劇情",
+    "beta108_story_body": "神祕信件、長老的叮嚀，以及村長講述的「五個願望」傳說。",
+    "beta108_ui_title": "介面調整與預設英文",
+    "beta108_ui_body": "新增存檔格選擇與成就圖鑑。首次啟動預設英文，既有語言設定會保留。",
+    "beta108_note": "存檔功能屬於下載版 Godot 遊戲，官網本身無法直接讀取本機存檔；發布前請先測試 Beta 版本。",
+
+    nav_save: "存檔與設定",
+    save_title: "繼續遊戲與設定",
+    continue_title: "✦ 繼續遊戲",
+    continue_body: "在遊戲標題畫面選擇「繼續遊戲」，即可讀取先前儲存的冒險進度；首次遊玩請先建立存檔。",
+    save_location: "預計的 Windows 版存檔位置（與遊戲執行檔同一資料夾內）：",
+    save_note: "搬移或備份遊戲時，請一併保留 game_save_data 資料夾。此路徑仍須在 Godot 遊戲程式中實作。",
+    settings_title: "⚙ 設定 — 即將推出",
+    settings_body: "設定畫面預計於後續版本加入，目前尚未開放音效及顯示等調整選項。",
+
+    title: "星光小徑", subtitle: "森林的約定",
+    tagline: "跟隨一盞燈，穿過失去星光的森林。遇見溫柔的動物與善良的居民，解開小小的謎題，一起把星光找回來。",
+    hero_download: "下載測試版", hero_learn: "了解更多",
+    nav_about: "關於遊戲", nav_features: "特色", nav_characters: "角色", nav_world: "世界", nav_controls: "操作", nav_download: "下載",
+    about_title: "關於遊戲",
+    about_body: "《星光小徑：森林的約定》是一款溫馨的 2D 像素風冒險 RPG。你將扮演一位迷路的旅行者，來到一座被星光守護的森林。夜幕降臨後，你會探索森林、收集物品、完成小任務，並慢慢揭開星光逐漸暗淡的秘密。",
+    feat_title: "遊戲特色",
+    f1_t: "夜晚探索", f1_b: "月光下的森林，有提燈的光、閃爍的螢火蟲，以及柔和的夜色。",
+    f2_t: "溫暖的任務", f2_b: "幫助擔心胡蘿蔔的小兔子、忙碌的鐵匠，還有失去燈光的小女孩。",
+    f3_t: "會改變的對話", f3_b: "角色會記得你做過的事，隨著劇情推進，他們的話也會跟著改變。",
+    f4_t: "引導式開場", f4_b: "左上角的目標提示會告訴你接下來該做什麼，不會迷失太久。",
+    f5_t: "隨時存檔", f5_b: "按 F5 存檔，之後可以從停下的地方繼續。",
+    f6_t: "三種語言", f6_b: "支援英文、繁體中文與日文，可在標題畫面隨時切換。",
+    chars_title: "角色",
+    c_bunny_n: "小兔子", c_bunny_d: "在洞口旁弄丟了胡蘿蔔，害怕得不敢一個人去找。",
+    c_fox_n: "小狐狸", c_fox_d: "找不到回家的路。如果看到屋頂是紅色的小木屋，別忘了告訴他。",
+    c_elder_n: "星光長老", c_elder_d: "森林的守護者，他提到湖泊另一端，正等待著旅人的神殿。",
+    c_mimi_n: "米米", c_mimi_d: "燈籠熄掉的小女孩。她的笑聲，讓廣場重新熱鬧起來。",
+    c_smith_n: "鐵匠石頭伯", c_smith_d: "需要一根木材來修補燈籠，並答應會以一盞燈作為回報。",
+    c_fairy_n: "精靈露露", c_fairy_d: "守護湖泊的秘密，也總會給每位旅人一點有用的提示。",
+    world_title: "世界",
+    w_forest_n: "星光森林", w_forest_d: "旅程開始的地方。安靜的小路、發光的湖泊，還有友善的森林居民。",
+    w_village_n: "星光村", w_village_d: "一座小村莊，有廣場、噴水池，以及需要你幫忙的鄰居們。",
+    w_more_n: "更多內容", w_more_d: "洞穴、古老的神殿與湖泊，都規劃在未來的更新中。",
+    shot1: "截圖：夜晚的森林", shot2: "截圖：星光村",
+    ctrl_title: "操作方式", ctrl_action: "動作", ctrl_key: "按鍵",
+    ctrl_move: "移動", ctrl_interact: "對話 / 撿取", ctrl_advance: "繼續對話", ctrl_inv: "背包",
+    ctrl_pause: "暫停選單", ctrl_save: "存檔 / 讀檔",
+    dl_title: "下載", dl_body: "《星光小徑》目前為測試版。請下載適合你平台的版本，並告訴我們你的想法。",
+    dl_version: "目前版本", dl_btn: "前往 GitHub 下載",
+    news_title: "最新消息",
+    news1: "Beta 1.3.1：第 51～150 章劇情資料、世界地圖傳送、任務 NPC 發光提示與南方新城鎮。",
+    news2: "星光村現已開放探索。",
+    news3: "新增英文、繁體中文與日文支援。",
+    footer_made: "使用 Godot 4 製作"
+  },
+  ja: {
+    "nav_shop": "ショップ",
+    "nav_story131": "第51～150章",
+    "shop_title": "ゲーム内フードショップ",
+    "shop_intro": "冒険中に食料商人を訪ね、ゲーム内コインで食べ物を購入して空腹度を回復できます。こちらはゲーム内ショップの紹介で、オンライン決済ではありません。",
+    "shop_berry": "野生のベリー",
+    "shop_berry_desc": "旅のお供にぴったりの軽食。",
+    "shop_bread": "パン",
+    "shop_bread_desc": "お腹を満たす定番の食べ物。",
+    "shop_soup": "スープ",
+    "shop_soup_desc": "長旅にうれしい温かい料理。",
+    "shop_stew": "シチュー",
+    "shop_stew_desc": "冒険者向けのボリュームある食事。",
+    "shop_note": "価格と在庫はゲーム内で確認してください。このサイトでの現金購入はできません。",
+    "shop_play": "ゲームをダウンロード",
+
+    "nav_beta108": "更新情報",
+    "beta108_title": "Beta 1.3.1 — 更新内容",
+    "beta108_slots_title": "5つのセーブスロット",
+    "beta108_slots_body": "5つの独立したセーブデータを選択できます。Windows版ではEXEと同じ場所の game_save_data/slot_1.json ～ slot_5.json に保存されます。",
+    "beta108_ach_title": "8つの実績",
+    "beta108_ach_body": "仲間を助け、村を探索し、森の物語を聞いて実績を解除しましょう。",
+    "beta108_story_title": "追加ストーリー",
+    "beta108_story_body": "謎の手紙、長老の言葉、村長が語る「5つの願い」の伝説を追加。",
+    "beta108_ui_title": "メニュー改善・英語初期設定",
+    "beta108_ui_body": "セーブスロット選択と実績一覧を追加。新規インストールでは英語が初期設定となり、既存の設定は保持されます。",
+    "beta108_note": "セーブ機能はダウンロード版ゲーム専用です。ウェブサイトからローカルのセーブデータを直接読み取ることはできません。",
+
+    nav_save: "セーブと設定",
+    save_title: "つづきから・設定",
+    continue_title: "✦ つづきから",
+    continue_body: "タイトル画面の「つづきから」で保存した冒険を再開できます。初回は先にセーブしてください。",
+    save_location: "Windows 版で予定しているセーブ先（実行ファイルと同じフォルダー内）：",
+    save_note: "移動やバックアップ時は game_save_data フォルダーも一緒に保管してください。この保存先は Godot 側で実装する必要があります。",
+    settings_title: "⚙ 設定 — 今後追加予定",
+    settings_body: "設定画面は今後のアップデートで追加予定です。音量や表示設定はまだ利用できません。",
+
+    title: "星光の小径", subtitle: "森の約束",
+    tagline: "星を失った森を、ランタンの光を頼りに歩こう。やさしい動物や親切な村人たちと出会い、小さな謎を解いて、星の光を取り戻す旅。",
+    hero_download: "ベータ版をダウンロード", hero_learn: "詳しく見る",
+    nav_about: "概要", nav_features: "特徴", nav_characters: "キャラクター", nav_world: "世界", nav_controls: "操作", nav_download: "ダウンロード",
+    about_title: "ゲーム概要",
+    about_body: "『星光の小径：森の約束』は、心あたたまる2DピクセルアートのアドベンチャーRPGです。星の光に守られた森にたどり着いた、迷子の旅人になって冒険します。夜が訪れたら森を探索し、アイテムを集め、小さなクエストをこなしながら、少しずつ暗くなっていく星の秘密を明らかにしていきます。",
+    feat_title: "特徴",
+    f1_t: "夜の探索", f1_b: "月明かりの森。ランタンの光、ほのかに光るホタル、やわらかな夜の色彩。",
+    f2_t: "心温まるクエスト", f2_b: "にんじんをなくして困っているうさぎ、忙しい鍛冶屋さん、光を失った女の子を助けましょう。",
+    f3_t: "変化する会話", f3_b: "キャラクターはあなたの行動を覚えていて、物語が進むにつれて言葉も変わります。",
+    f4_t: "やさしい案内", f4_b: "左上に次の目標が表示されるので、迷子になりにくい設計です。",
+    f5_t: "いつでもセーブ", f5_b: "F5 でセーブすれば、中断した場所からいつでも再開できます。",
+    f6_t: "3言語対応", f6_b: "英語・繁体字中国語・日本語でプレイできます。タイトル画面からいつでも切り替え可能。",
+    chars_title: "キャラクター",
+    c_bunny_n: "うさぎ", c_bunny_d: "巣穴のそばでにんじんをなくし、一人で探すのが怖くてたまりません。",
+    c_fox_n: "きつね", c_fox_d: "家への帰り道がわかりません。赤い屋根の小屋を見かけたら教えてあげてください。",
+    c_elder_n: "星光の長老", c_elder_d: "森の守護者。湖の向こうで旅人を待つ神殿について語ります。",
+    c_mimi_n: "ミミ", c_mimi_d: "ランタンの火が消えてしまった女の子。彼女の笑顔が広場に活気を取り戻します。",
+    c_smith_n: "鍛冶屋の石頭おじさん", c_smith_d: "ランタンを直すための木材を探しています。お礼に明かりを約束してくれます。",
+    c_fairy_n: "妖精ルル", c_fairy_d: "湖の秘密を守る妖精。旅人にはいつも役立つヒントをくれます。",
+    world_title: "世界",
+    w_forest_n: "星光の森", w_forest_d: "旅が始まる場所。静かな小道、光る湖、やさしい森の仲間たち。",
+    w_village_n: "星光の村", w_village_d: "広場と噴水のある小さな村。あなたの助けを必要とする村人たちがいます。",
+    w_more_n: "これから", w_more_d: "洞窟、古代の神殿、そして湖は、今後のアップデートで追加予定です。",
+    shot1: "スクリーンショット：夜の森", shot2: "スクリーンショット：星光の村",
+    ctrl_title: "操作方法", ctrl_action: "アクション", ctrl_key: "キー",
+    ctrl_move: "移動", ctrl_interact: "会話 / 拾う", ctrl_advance: "会話を進める", ctrl_inv: "持ち物",
+    ctrl_pause: "ポーズメニュー", ctrl_save: "セーブ / ロード",
+    dl_title: "ダウンロード", dl_body: "『星光の小径』は現在ベータ版です。お使いのプラットフォーム向けのビルドをダウンロードして、感想をぜひお聞かせください。",
+    dl_version: "現在のバージョン", dl_btn: "GitHub でダウンロード",
+    news_title: "お知らせ",
+    news1: "Beta 1.3.1：第51～150章の物語データ、ファストトラベル、NPC案内、南の新しい町を追加。",
+    news2: "星光の村を探索できるようになりました。",
+    news3: "英語・繁体字中国語・日本語に対応しました。",
+    footer_made: "Godot 4 で制作"
+  }
+};
+
+function setLang(lang) {
+  const dict = T[lang] || T.en;
+  document.documentElement.lang = lang === "zh" ? "zh-Hant" : lang;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[key] !== undefined) el.textContent = dict[key];
+  });
+  document.querySelectorAll(".lang button").forEach(b => {
+    b.classList.toggle("active", b.dataset.lang === lang);
+  });
+  document.querySelectorAll("[data-release-lang]").forEach(el => { el.hidden = el.dataset.releaseLang !== lang; });
+  document.title = (dict.title || "Starlight Path") + (lang === "en" ? ": " + dict.subtitle : lang === "zh" ? "：" + dict.subtitle : "：" + dict.subtitle);
+}
+
+document.querySelectorAll(".lang button").forEach(b => {
+  b.addEventListener("click", () => setLang(b.dataset.lang));
+});
+
+// Decorative twinkling stars in the hero
+const starLayer = document.getElementById("stars");
+for (let i = 0; i < 40; i++) {
+  const s = document.createElement("span");
+  s.style.left = Math.random() * 100 + "%";
+  s.style.top = Math.random() * 100 + "%";
+  s.style.animationDelay = (Math.random() * 3) + "s";
+  starLayer.appendChild(s);
+}
+
+setLang("en");
+</script>
+
+</body>
+</html>
